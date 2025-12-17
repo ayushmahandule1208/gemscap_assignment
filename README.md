@@ -17,8 +17,7 @@ This project was intentionally scoped to be completed within **one day**, priori
 ### Installation
 
 ```bash
-git clone https://github.com/<your-username>/quant-analytics-platform.git
-cd quant-analytics-platform
+https://github.com/ayushmahandule1208/gemscap_assignment.git
 pip install -r requirements.txt
 ```
 
@@ -172,26 +171,21 @@ The frontend communicates exclusively via backend APIs.
 
 ## Architecture Diagram
 
-The system architecture is documented using **draw.io** and included in the repository:
+The system architecture is documented using **eraser.io** and included in the repository:
 
-```
-diagrams/
-├── architecture.drawio
-├── architecture.png
-```
+link: https://app.eraser.io/workspace/szDupfpFPJPeZbsyvghZ?origin=share&elements=15rMVRjD0cjeAcv471mOuQ
 
-The diagram illustrates ingestion, processing, analytics, alerting, storage, and frontend interaction.
-
----
 
 ## AI Usage Transparency
 
 ChatGPT was used selectively to:
 
 * Validate architectural decisions
+* Clear doubts regarding tradeoffs
+* Statistical calculation formulas
 * Clarify quantitative concepts
 * Improve documentation clarity
-* Assist with frontend structuring
+* Assist with frontend structuring as I was not well versed with streamlit
 
 All analytics logic, system design, and integration decisions were independently reasoned and implemented.
 
