@@ -1,24 +1,41 @@
 # Quant Analytics Platform
 
-A lightweight, end-to-end **quantitative analytics application** that ingests live and historical market data, performs real-time and batch analytics, and presents results through a simple interactive frontend.
+A lightweight, end-to-end quantitative analytics system designed to demonstrate real-world data ingestion, processing, analytics, and visualization, similar to how professional quant research tools are structured.
 
-I have made two submissions as in first submission I added github project link as assignment link, in second I added link of a zip file
+The platform supports live market data and historical datasets, performs both real-time monitoring and batch statistical analysis, and exposes results through a clean, interactive dashboard.
+
 ---
 
-## Setup & Execution
+## Submissions
+
+Two submissions were made to ensure compatibility with different evaluation workflows:
+
+1. GitHub Repository Link — complete source code, documentation, and architecture
+2. ZIP Archive Link — packaged version of the same project for offline review
+
+Both submissions contain identical functionality and documentation.
+
+---
+
+## Setup and Execution
 
 ### Prerequisites
 
-- Python 3.9+
-- pip
-- Internet connection (for live Binance feed)
+* Python 3.9+
+* pip
+* Stable internet connection (required for live Binance WebSocket feed)
+
+---
 
 ### Installation
 
 ```bash
-https://github.com/ayushmahandule1208/gemscap_assignment.git
+git clone https://github.com/ayushmahandule1208/gemscap_assignment.git
+cd gemscap_assignment
 pip install -r requirements.txt
 ```
+
+---
 
 ### Run (Single Command)
 
@@ -26,30 +43,30 @@ pip install -r requirements.txt
 python app.py
 ```
 
-This starts:
+This single command starts:
 
-* The FastAPI backend
-* In-memory buffers and SQLite storage
-* The Streamlit frontend dashboard
+* FastAPI backend server
+* In-memory buffers and SQLite persistence
+* Streamlit-based analytics dashboard
 
-Local URLs are printed in the terminal.
+Local service URLs are printed directly in the terminal.
 
 ---
 
 ## Dependencies
 
-| Library              | Purpose                  |
-| -------------------- | ------------------------ |
-| FastAPI              | Backend API layer        |
-| Streamlit            | Frontend dashboard       |
-| NumPy / Pandas       | Time-series manipulation |
-| SciPy / Statsmodels  | Statistical analysis     |
-| scikit-learn         | Robust regression        |
-| websockets / asyncio | Live data ingestion      |
-| SQLite3              | Lightweight persistence  |
-| matplotlib / plotly  | Visualization            |
+| Library              | Purpose                        |
+| -------------------- | ------------------------------ |
+| FastAPI              | Backend API layer              |
+| Streamlit            | Interactive frontend dashboard |
+| NumPy / Pandas       | Time-series manipulation       |
+| SciPy / Statsmodels  | Statistical analysis           |
+| scikit-learn         | Robust regression models       |
+| websockets / asyncio | Live data ingestion            |
+| SQLite3              | Lightweight persistence        |
+| matplotlib / plotly  | Visualization                  |
 
-All dependencies are listed in `requirements.txt`.
+All dependencies are explicitly listed in requirements.txt.
 
 ---
 
@@ -57,31 +74,40 @@ All dependencies are listed in `requirements.txt`.
 
 ### Design Principles
 
-* **Single normalization point**: All incoming data is converted to standard models (`TickEvent`, `OHLCBar`)
-* **Source-agnostic ingestion**: The core engine is unaware of data origin (live or file-based)
-* **Separation of concerns**: Clear boundaries between ingestion, analytics, alerts, and storage
-* **Pure analytics functions**: Stateless, side-effect-free computations
-* **Dual storage model**: In-memory buffers for speed, SQLite for durability
+* Single normalization point
+  All incoming data is converted into standard internal models (TickEvent, OHLCBar).
+
+* Source-agnostic ingestion
+  The analytics engine is unaware of whether data is live or file-based.
+
+* Separation of concerns
+  Clear boundaries between ingestion, analytics, alerts, storage, and presentation.
+
+* Pure analytics functions
+  All statistical computations are stateless and side-effect free.
+
+* Dual storage model
+  In-memory buffers for low-latency access, SQLite for durability and replay.
 
 ---
 
 ### Data Ingestion
 
-The system supports two ingestion paths:
+The system supports two independent ingestion paths:
 
-1. **Live data**
+#### 1. Live Market Data
 
-   * Binance Futures WebSocket
-   * Trade messages parsed into tick events
-   * Continuous ingestion into the engine
+* Binance Futures WebSocket feed
+* Trade messages parsed into tick-level events
+* Continuous ingestion into the engine
 
-2. **Historical data**
+#### 2. Historical Data
 
-   * CSV / NDJSON uploads
-   * Tick-level or OHLC formats
-   * Normalized before ingestion
+* CSV or NDJSON uploads
+* Tick-level or OHLC formats
+* Normalized before ingestion
 
-Both paths converge into a **single processing pipeline**.
+Both paths converge into a single unified processing pipeline.
 
 ---
 
@@ -90,31 +116,34 @@ Both paths converge into a **single processing pipeline**.
 * Tick data is:
 
   * Stored in a rolling in-memory buffer
-  * Resampled into OHLC bars (1s / 1m / 5m)
+  * Resampled into OHLC bars (1s, 1m, 5m)
   * Persisted to SQLite
 
 * Uploaded OHLC data bypasses resampling and is stored directly
 
-Completed bars trigger batch analytics and alert evaluation.
+* Completed bars trigger:
+
+  * Batch analytics
+  * Alert rule evaluation
 
 ---
 
-## Analytics Explanation
+## Analytics Overview
 
-The analytics layer is divided into **live** and **batch** computations.
+The analytics layer is split into low-latency live analytics and computational batch analytics.
 
 ---
 
 ### Live Analytics (Low Latency)
 
-Updated on each tick or short interval:
+Updated on every tick or short interval:
 
 * Rolling mean and standard deviation
-* Spread between asset pairs
+* Pair spread calculation
 * Z-score of the spread
 * Rolling correlation
 
-These metrics are designed for **real-time monitoring and alerting**.
+These metrics are designed for real-time monitoring, diagnostics, and alerts.
 
 ---
 
@@ -122,69 +151,72 @@ These metrics are designed for **real-time monitoring and alerting**.
 
 Triggered on bar close or user request:
 
-* **Hedge ratio estimation**
+#### Hedge Ratio Estimation
 
-  * Ordinary Least Squares (OLS)
-  * Kalman Filter (dynamic hedge)
-  * Robust regression (Huber, Theil–Sen)
+* Ordinary Least Squares (OLS)
+* Kalman Filter (dynamic hedge ratio)
+* Robust regression (Huber, Theil–Sen)
 
-* **Stationarity testing**
+#### Statistical Testing
 
-  * Augmented Dickey–Fuller (ADF)
-  * P-value and stationarity flag
+* Augmented Dickey–Fuller (ADF)
+* P-value computation and stationarity flag
 
-* **Mean reversion metrics**
+#### Mean Reversion Metrics
 
-  * Half-life estimation
+* Half-life estimation
 
-* **Backtesting**
+#### Backtesting
 
-  * Simple mean-reversion strategy
-    (entry: |z| > 2, exit: z < 0)
+* Simple mean-reversion strategy
 
-* **Cross-asset analysis**
+  * Entry: |z| > 2
+  * Exit: z < 0
 
-  * Correlation matrix
-  * Liquidity-based filtering
+#### Cross-Asset Analysis
 
-All analytics functions operate purely on data passed from the engine, without database access or shared state.
+* Correlation matrix
+* Liquidity-based filtering
+
+All analytics functions operate purely on data passed from the engine, without direct database access or shared state.
 
 ---
 
 ## Frontend
 
-The frontend is implemented using **Streamlit**, keeping the focus on analytics rather than UI complexity.
+The frontend is implemented using Streamlit, prioritizing analytical clarity over UI complexity.
 
 Features include:
 
 * Symbol and timeframe selection
-* Live price and OHLC charts
-* Spread and z-score visualization
+* Live price and OHLC visualizations
+* Spread and Z-score charts
 * Advanced analytics outputs
-* Alert management and history
-* Data export
+* Alert configuration and history
+* Data export utilities
 
-The frontend communicates exclusively via backend APIs.
+The frontend communicates exclusively via backend APIs, maintaining a clean separation from analytics logic.
 
 ---
 
 ## Architecture Diagram
 
-The system architecture is documented using **eraser.io** and included in the repository:
+A complete system architecture diagram is included and documented using eraser.io:
 
-link: https://app.eraser.io/workspace/szDupfpFPJPeZbsyvghZ?origin=share&elements=15rMVRjD0cjeAcv471mOuQ
+[https://app.eraser.io/workspace/szDupfpFPJPeZbsyvghZ?origin=share&elements=15rMVRjD0cjeAcv471mOuQ](https://app.eraser.io/workspace/szDupfpFPJPeZbsyvghZ?origin=share&elements=15rMVRjD0cjeAcv471mOuQ)
 
+---
 
 ## AI Usage Transparency
 
 ChatGPT was used selectively to:
 
 * Validate architectural decisions
-* Clear doubts regarding tradeoffs
-* Statistical calculation formulas
-* Clarify quantitative concepts
+* Clarify system design trade-offs
+* Verify statistical formulas
+* Explain quantitative concepts
 * Improve documentation clarity
-* Assist with frontend structuring as I was not well versed with streamlit
+* Assist with Streamlit structuring
 
 All analytics logic, system design, and integration decisions were independently reasoned and implemented.
 
@@ -192,23 +224,32 @@ All analytics logic, system design, and integration decisions were independently
 
 ## Trade-offs
 
-This project prioritizes:
+This project intentionally prioritizes:
 
-* Correctness and clarity
+* Correctness and analytical clarity
 * End-to-end completeness
-* Realistic system design
+* Realistic quant-system design
 
 Over:
 
 * Production-scale infrastructure
 * Authentication and deployment
-* UI polish
+* Extensive UI polish
 
-These trade-offs were made intentionally to align with the **one-day project constraint**.
+These trade-offs align with the one-day project constraint.
+
+---
 
 ## Future Scope
-* Additional Data Feeds: Extend ingestion layer to support CME futures, equities, FX, or REST-based historical APIs via pluggable adapters.
-* Scalable Storage: Migrate from SQLite to a time-series database (TimescaleDB/ClickHouse) for multi-day, multi-asset analytics.
-* Cross-Asset Analytics: Implement liquidity filters and rolling cross-correlation heatmaps across symbols.
-* Distributed Architecture: Introduce message queues and worker pools for horizontal scaling of ingestion and analytics.
 
+* Additional Data Feeds
+  Support CME futures, equities, FX, and REST-based historical APIs via pluggable adapters.
+
+* Scalable Storage
+  Migrate from SQLite to a time-series database such as TimescaleDB or ClickHouse.
+
+* Cross-Asset Analytics
+  Liquidity filters, rolling cross-correlation heatmaps, and regime detection.
+
+* Distributed Architecture
+  Message queues and worker pools for horizontally scalable ingestion and analytics.
