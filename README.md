@@ -3,7 +3,7 @@
 A lightweight, end-to-end **quantitative analytics application** that ingests live and historical market data, performs real-time and batch analytics, and presents results through a simple interactive frontend.
 
 This project was intentionally scoped to be completed within **one day**, prioritizing **clarity of design, correctness of analytics, and clean data flow** over feature sprawl.
-
+I have made two submissions as in first submission I added github project link as assignment link, in second I added link of a zip file
 ---
 
 ## Setup & Execution
