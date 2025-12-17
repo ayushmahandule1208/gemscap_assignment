@@ -190,7 +190,7 @@ All analytics logic, system design, and integration decisions were independently
 
 ---
 
-## Scope & Trade-offs
+## Trade-offs
 
 This project prioritizes:
 
@@ -205,4 +205,10 @@ Over:
 * UI polish
 
 These trade-offs were made intentionally to align with the **one-day project constraint**.
+
+## Future Scope
+* Additional Data Feeds: Extend ingestion layer to support CME futures, equities, FX, or REST-based historical APIs via pluggable adapters.
+* Scalable Storage: Migrate from SQLite to a time-series database (TimescaleDB/ClickHouse) for multi-day, multi-asset analytics.
+* Cross-Asset Analytics: Implement liquidity filters and rolling cross-correlation heatmaps across symbols.
+* Distributed Architecture: Introduce message queues and worker pools for horizontal scaling of ingestion and analytics.
 
