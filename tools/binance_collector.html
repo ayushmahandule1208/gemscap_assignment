@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Binance Live Data Collector</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0b0f14;
+            color: #e6edf3;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin: 0 0 20px;
+            font-size: 20px;
+            color: #58a6ff;
+        }
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        input, select {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: #e6edf3;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-start { background: #238636; color: white; }
+        .btn-stop { background: #da3633; color: white; }
+        .btn-upload { background: #58a6ff; color: #0d1117; }
+        .btn-download { background: #6e7681; color: white; }
+        .btn-clear { background: #30363d; color: #e6edf3; }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .stats {
+            display: flex;
+            gap: 24px;
+            margin: 16px 0;
+            padding: 12px;
+            background: #0d1117;
+            border-radius: 8px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3fb950;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #8b949e;
+            text-transform: uppercase;
+        }
+        .log {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 12px;
+            height: 300px;
+            overflow: auto;
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .log-entry { margin: 2px 0; }
+        .log-time { color: #6e7681; }
+        .log-symbol { color: #58a6ff; font-weight: 600; }
+        .log-price { color: #3fb950; }
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-connected { background: #238636; }
+        .status-disconnected { background: #6e7681; }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .help {
+            margin-top: 20px;
+            padding: 16px;
+            background: #0d1117;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+        .help code {
+            background: #30363d;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #e6edf3;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>📡 Binance Live Data Collector</h1>
+        
+        <div class="row">
+            <input type="text" id="symbols" placeholder="Symbols (e.g., btcusdt,ethusdt)" value="btcusdt,ethusdt" style="flex: 1;">
+            <input type="text" id="backend" placeholder="Backend URL" value="http://localhost:8000" style="width: 200px;">
+        </div>
+        
+        <div class="row">
+            <button class="btn-start" id="btnStart">▶ Start</button>
+            <button class="btn-stop" id="btnStop" disabled>■ Stop</button>
+            <button class="btn-upload" id="btnUpload">⬆ Upload to Backend</button>
+            <button class="btn-download" id="btnDownload">⬇ Download NDJSON</button>
+            <button class="btn-clear" id="btnClear">🗑 Clear</button>
+            <span class="status status-disconnected" id="status">
+                <span class="dot"></span>
+                <span id="statusText">Disconnected</span>
+            </span>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="tickCount">0</div>
+                <div class="stat-label">Ticks Collected</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="tickRate">0</div>
+                <div class="stat-label">Ticks/sec</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="symbols-count">0</div>
+                <div class="stat-label">Symbols</div>
+            </div>
+        </div>
+        
+        <div class="log" id="log"></div>
+        
+        <div class="help">
+            <strong>How to use:</strong><br>
+            1. Enter symbols (lowercase, comma-separated)<br>
+            2. Click <code>Start</code> to connect to Binance WebSocket<br>
+            3. Let it collect data for a few minutes<br>
+            4. Click <code>Upload to Backend</code> to send data to your backend<br>
+            5. Or click <code>Download NDJSON</code> to save locally
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        // State
+        let sockets = [];
+        let buffer = [];
+        let running = false;
+        let ticksLastSecond = 0;
+        let lastTickTime = Date.now();
+        
+        // DOM
+        const $id = (id) => document.getElementById(id);
+        const log = $id('log');
+        const tickCount = $id('tickCount');
+        const tickRate = $id('tickRate');
+        const symbolsCount = $id('symbols-count');
+        const status = $id('status');
+        const statusText = $id('statusText');
+        
+        function addLog(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span> ${msg}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function updateStats() {
+            tickCount.textContent = buffer.length.toLocaleString();
+            const now = Date.now();
+            const elapsed = (now - lastTickTime) / 1000;
+            if (elapsed >= 1) {
+                tickRate.textContent = Math.round(ticksLastSecond / elapsed);
+                ticksLastSecond = 0;
+                lastTickTime = now;
+            }
+        }
+        
+        function setStatus(connected) {
+            status.className = `status ${connected ? 'status-connected' : 'status-disconnected'}`;
+            statusText.textContent = connected ? 'Connected' : 'Disconnected';
+        }
+        
+        function normalizeTick(data) {
+            return {
+                symbol: data.s.toUpperCase(),
+                ts: new Date(data.T || data.E).toISOString(),
+                price: parseFloat(data.p),
+                size: parseFloat(data.q),
+                side: data.m ? 'sell' : 'buy'
+            };
+        }
+        
+        // Start
+        $id('btnStart').onclick = function() {
+            if (running) return;
+            
+            const symbols = $id('symbols').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+            if (!symbols.length) {
+                addLog('❌ Enter at least one symbol');
+                return;
+            }
+            
+            running = true;
+            $id('btnStart').disabled = true;
+            $id('btnStop').disabled = false;
+            symbolsCount.textContent = symbols.length;
+            
+            addLog(`🚀 Connecting to ${symbols.length} symbol(s)...`);
+            
+            sockets = symbols.map(sym => {
+                const url = `wss://fstream.binance.com/ws/${sym}@trade`;
+                const ws = new WebSocket(url);
+                
+                ws.onopen = () => {
+                    addLog(`✅ Connected: <span class="log-symbol">${sym.toUpperCase()}</span>`);
+                    setStatus(true);
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.e === 'trade') {
+                            const tick = normalizeTick(data);
+                            buffer.push(tick);
+                            ticksLastSecond++;
+                            updateStats();
+                            
+                            // Log every 100th tick
+                            if (buffer.length % 100 === 0) {
+                                addLog(`📊 <span class="log-symbol">${tick.symbol}</span> <span class="log-price">$${tick.price.toFixed(2)}</span> (${buffer.length} ticks)`);
+                            }
+                        }
+                    } catch (e) {}
+                };
+                
+                ws.onclose = (event) => {
+                    addLog(`🔌 Disconnected: ${sym.toUpperCase()} (code: ${event.code})`);
+                };
+                
+                ws.onerror = () => {
+                    addLog(`❌ Error: ${sym.toUpperCase()}`);
+                };
+                
+                return ws;
+            });
+        };
+        
+        // Stop
+        $id('btnStop').onclick = function() {
+            sockets.forEach(ws => {
+                try { ws.close(1000, 'user stopped'); } catch(e) {}
+            });
+            sockets = [];
+            running = false;
+            $id('btnStart').disabled = false;
+            $id('btnStop').disabled = true;
+            setStatus(false);
+            addLog('⏹ Stopped');
+        };
+        
+        // Upload to backend
+        $id('btnUpload').onclick = async function() {
+            if (buffer.length === 0) {
+                addLog('❌ No data to upload');
+                return;
+            }
+            
+            const backendUrl = $id('backend').value.replace(/\/$/, '');
+            addLog(`⬆ Uploading ${buffer.length} ticks to backend...`);
+            
+            try {
+                // Create NDJSON
+                const ndjson = buffer.map(t => JSON.stringify(t)).join('\n');
+                const blob = new Blob([ndjson], { type: 'application/x-ndjson' });
+                
+                const formData = new FormData();
+                formData.append('file', blob, 'live_ticks.ndjson');
+                
+                const response = await fetch(`${backendUrl}/api/upload/ndjson`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    addLog(`✅ Uploaded! ${result.count || buffer.length} ticks ingested`);
+                    addLog(`📊 Symbols: ${result.symbols?.join(', ') || 'unknown'}`);
+                } else {
+                    addLog(`❌ Upload failed: ${result.detail || result.error || 'Unknown error'}`);
+                }
+            } catch (e) {
+                addLog(`❌ Upload error: ${e.message}`);
+                addLog('💡 Make sure backend is running: uvicorn main:app --reload');
+            }
+        };
+        
+        // Download NDJSON
+        $id('btnDownload').onclick = function() {
+            if (buffer.length === 0) {
+                addLog('❌ No data to download');
+                return;
+            }
+            
+            const ndjson = buffer.map(t => JSON.stringify(t)).join('\n');
+            const blob = new Blob([ndjson], { type: 'application/x-ndjson' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ticks_${new Date().toISOString().replace(/[:.]/g, '-')}.ndjson`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addLog(`⬇ Downloaded ${buffer.length} ticks`);
+        };
+        
+        // Clear
+        $id('btnClear').onclick = function() {
+            buffer = [];
+            log.innerHTML = '';
+            updateStats();
+            addLog('🗑 Buffer cleared');
+        };
+        
+        // Update stats periodically
+        setInterval(updateStats, 1000);
+        
+        addLog('👋 Ready. Click Start to begin collecting live data.');
+    })();
+    </script>
+</body>
+</html>
+
