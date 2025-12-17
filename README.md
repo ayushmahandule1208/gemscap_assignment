@@ -8,12 +8,7 @@ The platform supports live market data and historical datasets, performs both re
 
 ## Submissions
 
-Two submissions were made to ensure compatibility with different evaluation workflows:
-
-1. GitHub Repository Link — complete source code, documentation, and architecture
-2. ZIP Archive Link — packaged version of the same project for offline review
-
-Both submissions contain identical functionality and documentation.
+I made two submissions as I put github project link in place of assignment link for the first submission.Both submissions contain identical functionality and documentation.
 
 ---
 
